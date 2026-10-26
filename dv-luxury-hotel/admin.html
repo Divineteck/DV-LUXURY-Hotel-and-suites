@@ -1,0 +1,65 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#081426"><title>Staff Dashboard | DV-LUXURY</title><link rel="stylesheet" href="styles.css"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet"><style>body{background:#f6f5f1;color:#17233b}.admin-main{max-width:1150px;margin:35px auto;padding:20px}.panel{background:white;border:1px solid #e8e2d7;padding:22px;margin:18px 0}.login{max-width:450px;margin:50px auto}.panel input,.panel select{padding:11px;border:1px solid #ddd;width:100%;margin:7px 0 13px}.panel button{padding:10px 14px;background:#0b1b32;color:#f0d394;border:0;margin:4px;cursor:pointer}.hidden{display:none!important}.notice{font-size:13px;line-height:1.5;overflow-wrap:anywhere}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:12px;border-bottom:1px solid #eee;text-align:left;font-size:12px}th{background:#f8f6f1}.admin-top{background:#081426;padding:15px 5%;display:flex;justify-content:space-between;align-items:center}.admin-top img{width:130px;height:55px;object-fit:contain}.admin-top a{color:#e6c77a}@media(max-width:600px){.admin-main{padding:10px}}</style></head><body><header class="admin-top"><a href="index.html"><img src="assets/dv-luxury-logo.png" alt="DV-LUXURY"></a><a href="index.html">← Hotel website</a></header><main class="admin-main"><section id="configWarning" class="panel notice hidden"></section><section id="loginPanel" class="panel login"><h1>Staff sign in</h1><p>Only accounts added to the authorised staff list can access reservations.</p><form id="staffLogin"><label>Email<input name="email" type="email" required></label><label>Password<input name="password" type="password" required></label><button type="submit">Sign in</button></form><p id="loginMessage" class="notice"></p></section><section id="dashboard" class="hidden"><h1>Booking overview</h1><p id="staffInfo" class="notice"></p><button id="refreshBtn">Refresh bookings</button><button id="logoutBtn">Log out</button><div class="panel"><div class="table-wrap"><table><thead><tr><th>GUEST</th><th>EMAIL</th><th>PHONE</th><th>ROOM</th><th>DATES</th><th>GUESTS</th><th>STATUS</th><th>PAYMENT</th><th>ACTION</th></tr></thead><tbody id="bookingRows"></tbody></table></div><p id="tableMessage" class="notice"></p></div></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script>const $=s=>document.querySelector(s);let db=null;const url=window.DV_SUPABASE_URL,key=window.DV_SUPABASE_PUBLISHABLE_KEY;
+if(!url||!key||url.includes('PASTE_')||key.includes('PASTE_')){$('#configWarning').classList.remove('hidden');$('#configWarning').textContent='Setup needed: add your Supabase Project URL and Publishable key in config.js.';}else if(window.supabase){db=window.supabase.createClient(url,key)}else{$('#configWarning').classList.remove('hidden');$('#configWarning').textContent='Supabase library did not load. Check internet and reload.'}
+const say=(s,t)=>$(s).textContent=t;
+/* Every request is time-limited so a loading state can never hang forever. */
+const TIMEOUT=12000;
+const withTimeout=(p,ms=TIMEOUT)=>{let t;return Promise.race([Promise.resolve(p),new Promise((_,rej)=>{t=setTimeout(()=>rej(Object.assign(new Error('timeout'),{name:'TimeoutError'})),ms)})]).finally(()=>clearTimeout(t))};
+const isNet=e=>!!e&&(e.name==='TimeoutError'||e.name==='AuthRetryableFetchError'||e.name==='TypeError'||e.status===0||/failed to fetch|network|load failed/i.test(String(e.message||'')));
+const problem=(e,what)=>e&&e.name==='TimeoutError'?what+': the server took too long to respond. Check your connection and try again.':isNet(e)?what+': could not reach the server. Check your connection and try again.':what+': '+((e&&e.message)||'unknown error');
+let locked=false;
+function busy(on){locked=on;const b=$('#staffLogin button[type="submit"]');if(b){b.disabled=on;b.setAttribute('aria-busy',String(on))}}
+function showLogin(msg){$('#dashboard').classList.add('hidden');$('#loginPanel').classList.remove('hidden');say('#loginMessage',msg||'')}
+async function checkStaff(user){
+  try{
+    const {data,error}=await withTimeout(db.from('staff_users').select('role').eq('user_id',user.id).maybeSingle());
+    if(error)return{status:'error',message:'Could not check staff permissions: '+error.message+(error.code?' ('+error.code+')':'')};
+    return data?{status:'staff',role:data.role}:{status:'denied'};
+  }catch(e){return{status:'error',message:problem(e,'Could not check staff permissions')}}
+}
+/* Never throws: always ends on the dashboard or a visible message on the login panel. */
+async function openDashboard(fromLogin){
+  try{
+    let user=null;
+    try{const r=await withTimeout(db.auth.getUser());user=r.data&&r.data.user;if(!user&&r.error&&isNet(r.error))throw r.error}
+    catch(e){showLogin(problem(e,'Could not verify your sign-in'));return}
+    if(!user){showLogin(fromLogin?'Sign-in did not complete. Please try again.':'');return}
+    const s=await checkStaff(user);
+    if(s.status==='error'){showLogin(s.message);return}
+    if(s.status==='denied'){
+      if(fromLogin){try{await withTimeout(db.auth.signOut())}catch(_){try{await db.auth.signOut({scope:'local'})}catch(__){}}}
+      showLogin('This account is not authorised as staff. Ask the project administrator to add it to staff_users.');return;
+    }
+    $('#loginPanel').classList.add('hidden');$('#dashboard').classList.remove('hidden');
+    say('#staffInfo','Signed in as '+user.email+' · Role: '+s.role);
+    await fetchBookings();
+  }catch(e){showLogin(problem(e,'Something went wrong'))}
+}
+async function fetchBookings(){
+  const body=$('#bookingRows');say('#tableMessage','Loading bookings…');
+  let res;
+  try{res=await withTimeout(db.from('bookings').select('id,guest_name,guest_email,guest_phone,room_type,check_in,check_out,guests,status,payment_status').order('created_at',{ascending:false}))}
+  catch(e){res={error:e}}
+  body.innerHTML='';
+  if(res.error){say('#tableMessage',problem(res.error,'Unable to load bookings'));return}
+  const data=res.data||[];
+  if(!data.length){say('#tableMessage','No booking requests yet.');return}
+  say('#tableMessage','Loaded '+data.length+' booking(s). Payment processing is not connected yet.');
+  data.forEach(b=>{const tr=document.createElement('tr');[b.guest_name,b.guest_email,b.guest_phone,b.room_type,b.check_in+' → '+b.check_out,b.guests].forEach(v=>{const td=document.createElement('td');td.textContent=v??'';tr.append(td)});const statusTd=document.createElement('td');const status=document.createElement('select');['pending','confirmed','declined','cancelled'].forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;o.selected=v===b.status;status.append(o)});statusTd.append(status);tr.append(statusTd);const payTd=document.createElement('td');payTd.textContent=b.payment_status;tr.append(payTd);const actionTd=document.createElement('td');const btn=document.createElement('button');btn.textContent='Save status';
+    btn.addEventListener('click',async()=>{if(btn.disabled)return;btn.disabled=true;try{const {error}=await withTimeout(db.from('bookings').update({status:status.value}).eq('id',b.id));if(error){alert('Could not update: '+error.message)}else{alert('Booking status updated.');fetchBookings()}}catch(e){alert(problem(e,'Could not update'))}finally{btn.disabled=false}});
+    actionTd.append(btn);tr.append(actionTd);body.append(tr)});
+}
+$('#staffLogin').addEventListener('submit',async e=>{
+  e.preventDefault();if(!db||locked)return;
+  const f=new FormData(e.currentTarget);busy(true);say('#loginMessage','Signing in…');
+  try{
+    const {error}=await withTimeout(db.auth.signInWithPassword({email:String(f.get('email')).trim(),password:f.get('password')}));
+    if(error){say('#loginMessage',isNet(error)?problem(error,'Sign-in failed'):error.message);return}
+    await openDashboard(true);
+  }catch(err){say('#loginMessage',problem(err,'Sign-in failed'))}
+  finally{busy(false)}
+});
+$('#refreshBtn').addEventListener('click',()=>{if(db)openDashboard(false)});
+$('#logoutBtn').addEventListener('click',async()=>{if(db){try{await withTimeout(db.auth.signOut())}catch(_){try{await db.auth.signOut({scope:'local'})}catch(__){}}}showLogin('You have signed out.')});
+/* Page load: a signed-in guest is NOT signed out here; they simply see the staff login. */
+if(db)withTimeout(db.auth.getSession()).then(({data})=>{if(data&&data.session)return openDashboard(false)}).catch(e=>showLogin(problem(e,'Could not check your session')));
+</script></body></html>
