@@ -131,3 +131,76 @@ body .nav-book{padding:10px 15px;border-radius:999px;background:linear-gradient(
 .main-nav{gap:6px}
 .fx-dots{right:auto;left:14px}.fx-dots a span{right:auto;left:20px;translate:-8px -50%}.fx-dots a:hover span{translate:0 -50%}
 @media(max-width:1060px){.main-nav{gap:0}}
+
+/* ============ v4: THE DV-LUXURY EXPERIENCE (8 services) + OUR BRANCHES (3 locations) ============ */
+.svc-grid.reveal,.branch-grid.reveal{opacity:1;transform:none;rotate:none;transition:none}
+@keyframes fxCardIn{from{opacity:0;translate:0 44px;scale:.96}}
+.svc-grid:not(.visible) .svc-card,.branch-grid:not(.visible) .branch-card{opacity:0}
+.svc-grid.visible .svc-card,.branch-grid.visible .branch-card{animation:fxCardIn .85s cubic-bezier(.2,.7,.2,1) backwards;animation-delay:calc(var(--i,0)*80ms)}
+.branch-grid.visible .branch-card:nth-child(2){animation-delay:.12s}.branch-grid.visible .branch-card:nth-child(3){animation-delay:.24s}
+
+.services-section{position:relative;overflow:hidden;padding:clamp(70px,10vw,130px) 5%;color:#f4ecd8;background:radial-gradient(60% 40% at 12% 0,rgba(217,181,109,.17),transparent 70%),radial-gradient(50% 40% at 92% 100%,rgba(90,140,255,.11),transparent 70%),#02050a}
+.svc-head,.loc-head{max-width:760px;margin:0 auto clamp(36px,6vw,68px);text-align:center}
+.svc-head .eyebrow,.loc-head .eyebrow{justify-content:center}
+.svc-head h2,.loc-head h2{font-family:'Playfair Display',serif;font-weight:500;line-height:1.06;margin:14px 0;font-size:clamp(34px,6vw,62px)}
+.svc-head p:last-child{color:#cdc3aa;font-size:clamp(15px,2.2vw,18px);line-height:1.6;margin:0}
+.svc-grid{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:640px){.svc-grid{grid-template-columns:repeat(2,1fr);gap:18px}}
+@media(min-width:1100px){.svc-grid{grid-template-columns:repeat(4,1fr);gap:20px}}
+.svc-card,.branch-card{rotate:var(--rv,1 0 0 0deg);transition:rotate .5s cubic-bezier(.2,.7,.2,1),translate .4s,box-shadow .4s}
+.svc-card{--ac:#d8b875;position:relative;overflow:hidden;padding:26px 22px 24px;border-radius:26px;background:linear-gradient(160deg,rgba(255,255,255,.09),rgba(255,255,255,.02) 55%),rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.13);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 30px 50px -34px #000;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.svc-card::before,.branch-card::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .4s;z-index:2;background:radial-gradient(280px circle at var(--gx,50%) var(--gy,0%),rgba(255,238,200,.16),transparent 70%)}
+.svc-card::after{content:attr(data-n);position:absolute;right:18px;top:10px;font:600 56px/1 'Playfair Display',serif;color:rgba(255,255,255,.05)}
+.svc-card.fx-tilt,.branch-card.fx-tilt{translate:0 -8px}.svc-card.fx-tilt{box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 44px 60px -32px var(--ac)}
+.svc-card.fx-tilt::before,.branch-card.fx-tilt::before{opacity:1}
+.svc-ico{width:64px;height:64px;margin-bottom:18px;border-radius:20px;display:grid;place-items:center;color:var(--ac);background:radial-gradient(circle at 30% 18%,rgba(255,255,255,.2),transparent 60%),rgba(255,255,255,.05);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 0 0 1px rgba(255,255,255,.1),0 14px 34px -14px var(--ac)}
+.svc-ico svg{width:36px;height:36px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
+.svc-card h3{font:500 22px/1.2 'Playfair Display',serif;margin:0 0 6px;color:#fff}
+.svc-sub{margin:0;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ac);font-weight:600}
+.svc-card ul{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:9px}
+.svc-card li{display:flex;gap:10px;font-size:14px;line-height:1.45;color:#ddd4bf}
+.svc-card li::before{content:"";flex:0 0 6px;height:6px;margin-top:7px;border-radius:50%;background:var(--ac);box-shadow:0 0 10px var(--ac)}
+/* animated icons (paused until the section is on screen) */
+.svc-grid:not(.visible) *{animation-play-state:paused}
+.svc-ico .ring{transform-box:fill-box;transform-origin:center;animation:svcRing 2.6s ease-out infinite}
+.svc-ico .ripple{transform-box:fill-box;transform-origin:center;animation:svcRing 3s ease-out infinite}
+@keyframes svcRing{from{scale:.6;opacity:.9}to{scale:1.25;opacity:0}}
+.svc-ico .bolt{fill:currentColor;fill-opacity:.2;animation:svcFlick 2.8s infinite}
+@keyframes svcFlick{0%,44%,56%,100%{opacity:1}48%{opacity:.3}52%{opacity:.6}}
+.svc-ico .scan{animation:svcScan 2.8s ease-in-out infinite}@keyframes svcScan{50%{translate:0 11px}}
+.svc-ico .wave{stroke-dasharray:10 6;animation:svcDash 2.6s linear infinite}.svc-ico .wave.w2{animation-duration:3.4s;animation-direction:reverse}
+@keyframes svcDash{to{stroke-dashoffset:-32}}
+.svc-ico .lift{animation:svcLift 2.4s ease-in-out infinite}@keyframes svcLift{50%{translate:0 -4px}}
+.svc-ico .steam{stroke-dasharray:4 3;animation:svcSteam 2.4s ease-in-out infinite}.svc-ico .s2{animation-delay:.4s}.svc-ico .s3{animation-delay:.8s}
+@keyframes svcSteam{from{translate:0 4px;opacity:0}50%{opacity:1}to{translate:0 -4px;opacity:0}}
+.svc-ico .drum{transform-box:fill-box;transform-origin:center;animation:svcSpin 3.2s linear infinite}@keyframes svcSpin{to{rotate:360deg}}
+.svc-ico .shine{animation:svcShine 3.2s ease-in-out infinite;opacity:0}@keyframes svcShine{0%{translate:-6px 0;opacity:0}30%{opacity:1}60%{translate:18px 0;opacity:0}100%{opacity:0}}
+
+/* Branches */
+.locations-section{padding:clamp(70px,10vw,120px) 5%;background:radial-gradient(60% 50% at 50% 0,#fffaf0,transparent 70%),#efe7d6}
+.loc-head h2{color:#0b1b32;font-size:clamp(32px,5.6vw,58px)}.loc-head p:last-child{color:#5b6477;line-height:1.6;margin:0}
+.branch-grid{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:1fr;gap:20px}
+@media(min-width:900px){.branch-grid{grid-template-columns:repeat(3,1fr);gap:24px}}
+.branch-card{position:relative;overflow:hidden;border-radius:28px;background:#fff;border:1px solid rgba(255,255,255,.9);box-shadow:inset 0 1px 0 #fff,0 34px 60px -38px rgba(8,20,38,.6)}
+.branch-card.fx-tilt{box-shadow:inset 0 1px 0 #fff,0 50px 70px -36px rgba(8,20,38,.7)}
+.branch-top{position:relative;height:176px;overflow:hidden;background:radial-gradient(80% 90% at 85% 0,rgba(255,255,255,.18),transparent 60%),linear-gradient(160deg,var(--c1),var(--c2))}
+.branch-top .sky{position:absolute;left:0;bottom:0;width:100%;height:72%;fill:rgba(255,255,255,.11)}
+.branch-num{position:absolute;right:20px;top:10px;font:500 70px/1 'Playfair Display',serif;color:rgba(255,255,255,.14)}
+.pin{position:absolute;left:22px;top:22px;width:52px;height:52px;border-radius:18px;display:grid;place-items:center;color:var(--ac);background:rgba(255,255,255,.13);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 0 0 1px rgba(255,255,255,.16);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);animation:pinBob 3.4s ease-in-out infinite}
+.pin::after{content:"";position:absolute;inset:-1px;border-radius:inherit;border:2px solid var(--ac);animation:svcRing 2.8s ease-out infinite}
+@keyframes pinBob{50%{translate:0 -5px}}
+.pin svg,.addr-ico svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.branch-body{padding:24px 24px 28px}
+.branch-body small{display:block;font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#a07f36}
+.branch-body h3{font:500 clamp(28px,3.4vw,34px)/1.1 'Playfair Display',serif;color:#0b1b32;margin:8px 0 12px}
+.branch-body p{display:flex;gap:10px;margin:0;color:#4a5468;line-height:1.6;font-size:15px}
+.addr-ico{flex:0 0 22px;color:#a07f36;margin-top:2px}.addr-ico svg{width:20px;height:20px}
+@media(prefers-reduced-motion:reduce){.svc-ico *,.pin,.pin::after{animation:none!important}.svc-grid:not(.visible) .svc-card,.branch-grid:not(.visible) .branch-card{opacity:1}.svc-card,.branch-card{rotate:none}.svc-grid.visible .svc-card,.branch-grid.visible .branch-card{animation:none}}
+
+/* ============ v5 fixes: no more white gaps, lighter on phones ============ */
+.fx-drum{transform:none!important}                     /* whole-section tilt exposed the white page behind it */
+.fx-marquee{margin-inline:-16px}                       /* skewed ribbons never show slivers at the edges */
+@media(max-width:820px){
+  .svc-card,.amenity-grid>div{-webkit-backdrop-filter:none;backdrop-filter:none}   /* smoother scrolling on Android */
+  .svc-card{background:linear-gradient(160deg,rgba(255,255,255,.1),rgba(255,255,255,.03) 55%),#0a1019}
+}
